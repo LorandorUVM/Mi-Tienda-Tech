@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Product = require('../models/Product');
 
-// Configurar dotenv apuntando a la raíz del backend
 dotenv.config();
 
 const products = [
@@ -16,7 +15,6 @@ const products = [
     { nombre: "Tablet Air", descripcion: "Pantalla 11 pulgadas, 256GB", precio: 600, cantidad: 0, categoria: "Tablets", imagen: "https://picsum.photos/200/300?random=8" }, // Stock 0 (No se mostrará)
     { nombre: "Cámara Mirrorless", descripcion: "Graba en 4K 60fps", precio: 1100, cantidad: 4, categoria: "Cámaras", imagen: "https://picsum.photos/200/300?random=9" },
     { nombre: "Disco SSD 2TB", descripcion: "NVMe Gen4 ultra rápido", precio: 180, cantidad: 30, categoria: "Almacenamiento", imagen: "https://picsum.photos/200/300?random=10" },
-    // Agrega 10 productos más similares para completar los 20...
     { nombre: "Router WiFi 6", descripcion: "Alta velocidad y cobertura", precio: 130, cantidad: 10, categoria: "Redes", imagen: "https://picsum.photos/200/300?random=11" },
     { nombre: "Webcam 1080p", descripcion: "Ideal para streaming y zoom", precio: 60, cantidad: 40, categoria: "Accesorios", imagen: "https://picsum.photos/200/300?random=12" },
     { nombre: "Micrófono USB", descripcion: "Calidad de estudio", precio: 110, cantidad: 15, categoria: "Audio", imagen: "https://picsum.photos/200/300?random=13" },
