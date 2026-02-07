@@ -1,6 +1,7 @@
 import { 
     Container, Heading, Button, Table, Thead, Tbody, Tr, Th, Td, 
-    Image, IconButton, useToast, Flex,
+    Image, IconButton, useToast, Flex, SimpleGrid, Box, Stat, 
+    StatLabel, StatNumber, Badge, InputGroup, InputLeftElement,
     useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, 
     ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, 
     Input, VStack 
@@ -44,40 +45,32 @@ const Admin = () => {
 
     const crearProducto = async (e) => {
         e.preventDefault();
-        
-        // CORRECCIÓN: Preparamos un objeto que cubra todos los nombres posibles
-        // y añadimos una descripción por si el backend la requiere obligatoriamente.
         const productoData = {
             nombre: nuevoProd.nombre,
             precio: Number(nuevoProd.precio),
             categoria: nuevoProd.categoria,
             imagen: nuevoProd.imagen,
-            stock: Number(nuevoProd.cantidad),     // Nombre estándar
-            cantidad: Number(nuevoProd.cantidad),  // Nombre alternativo
-            descripcion: "Nuevo producto añadido desde el panel" // Campo común obligatorio
+            stock: Number(nuevoProd.cantidad),
+            cantidad: Number(nuevoProd.cantidad),
+            descripcion: "Nuevo producto añadido desde el panel"
         };
 
         try {
             await clienteAxios.post('/products', productoData);
-            
             toast({ 
                 title: "Producto creado", 
                 status: "success", 
                 duration: 3000, 
                 isClosable: true 
             });
-            
-            // Limpiar campos y cerrar modal
             setNuevoProd({ nombre: '', precio: '', categoria: '', imagen: '', cantidad: '' });
             onClose(); 
             obtenerProductos(); 
         } catch (error) {
-            // Esto imprimirá en tu consola del navegador el error real si el backend lo envía
             console.error("Error detallado:", error.response?.data);
-            
             toast({ 
                 title: "Error al guardar", 
-                description: error.response?.data?.msg || "Verifica que todos los campos sean correctos", 
+                description: error.response?.data?.msg || "Verifica los campos", 
                 status: "error" 
             });
         }
@@ -96,78 +89,133 @@ const Admin = () => {
 
     return (
         <Container maxW="container.xl" py={10}>
+            {/* --- SECCIÓN DE ESTADÍSTICAS --- */}
+            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5} mb={8}>
+                <Box p={5} shadow="md" borderWidth="1px" borderRadius="xl" bg="white" borderLeft="4px solid" borderColor="teal.400">
+                    <Stat>
+                        <StatLabel color="gray.500" fontWeight="bold">Total Productos</StatLabel>
+                        <StatNumber fontSize="3xl">{productos.length}</StatNumber>
+                    </Stat>
+                </Box>
+                <Box p={5} shadow="md" borderWidth="1px" borderRadius="xl" bg="white" borderLeft="4px solid" borderColor="purple.400">
+                    <Stat>
+                        <StatLabel color="gray.500" fontWeight="bold">Categorías</StatLabel>
+                        <StatNumber fontSize="3xl">{new Set(productos.map(p => p.categoria)).size}</StatNumber>
+                    </Stat>
+                </Box>
+                <Box p={5} shadow="md" borderRadius="xl" bg="teal.500" color="white">
+                    <Stat>
+                        <StatLabel fontWeight="bold">Stock Total</StatLabel>
+                        <StatNumber fontSize="3xl">
+                            {productos.reduce((acc, p) => acc + (p.stock || p.cantidad || 0), 0)}
+                        </StatNumber>
+                    </Stat>
+                </Box>
+            </SimpleGrid>
+
+            {/* --- CABECERA --- */}
             <Flex justifyContent="space-between" alignItems="center" mb={8}>
-                <Heading size="lg">Gestión de Inventario</Heading>
-                <Button leftIcon={<AddIcon />} colorScheme="teal" onClick={onOpen}>
+                <Heading size="lg" color="gray.700">Gestión de Inventario</Heading>
+                <Button 
+                    leftIcon={<AddIcon />} 
+                    colorScheme="teal" 
+                    onClick={onOpen}
+                    size="lg"
+                    shadow="base"
+                >
                     Nuevo Producto
                 </Button>
             </Flex>
 
-            <Table variant="simple" bg="white" shadow="md" borderRadius="lg">
-                <Thead bg="gray.100">
-                    <Tr>
-                        <Th>Imagen</Th>
-                        <Th>Nombre</Th>
-                        <Th>Categoría</Th>
-                        <Th>Precio</Th>
-                        <Th>Stock</Th>
-                        <Th>Acciones</Th>
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {productos.map(p => (
-                        <Tr key={p._id}>
-                            <Td><Image src={p.imagen} boxSize="50px" objectFit="cover" borderRadius="md" /></Td>
-                            <Td fontWeight="bold">{p.nombre}</Td>
-                            <Td>{p.categoria}</Td>
-                            <Td>${p.precio}</Td>
-                            <Td>{p.stock || p.cantidad}</Td>
-                            <Td>
-                                <IconButton 
-                                    icon={<DeleteIcon />} 
-                                    colorScheme="red" 
-                                    size="sm"
-                                    onClick={() => eliminarProd(p._id)}
-                                />
-                            </Td>
+            {/* --- TABLA --- */}
+            <Box bg="white" shadow="xl" borderRadius="lg" overflow="hidden" borderWidth="1px">
+                <Table variant="striped" colorScheme="gray">
+                    <Thead bg="gray.50">
+                        <Tr>
+                            <Th py={4}>Imagen</Th>
+                            <Th>Nombre</Th>
+                            <Th>Categoría</Th>
+                            <Th>Precio</Th>
+                            <Th>Stock</Th>
+                            <Th>Acciones</Th>
                         </Tr>
-                    ))}
-                </Tbody>
-            </Table>
+                    </Thead>
+                    <Tbody>
+                        {productos.map(p => (
+                            <Tr key={p._id} _hover={{ bg: "gray.50", transition: "0.2s" }}>
+                                <Td>
+                                    <Image src={p.imagen} boxSize="50px" objectFit="cover" borderRadius="md" shadow="sm" />
+                                </Td>
+                                <Td fontWeight="bold" color="gray.700">{p.nombre}</Td>
+                                <Td>
+                                    <Badge colorScheme="purple" variant="subtle" borderRadius="full" px={2}>
+                                        {p.categoria}
+                                    </Badge>
+                                </Td>
+                                <Td fontWeight="bold" color="teal.600">${p.precio}</Td>
+                                <Td>
+                                    <Badge 
+                                        colorScheme={(p.stock || p.cantidad) < 5 ? "red" : "green"} 
+                                        variant="solid" 
+                                        borderRadius="full" 
+                                        px={3}
+                                    >
+                                        {p.stock || p.cantidad} und
+                                    </Badge>
+                                </Td>
+                                <Td>
+                                    <IconButton 
+                                        icon={<DeleteIcon />} 
+                                        colorScheme="red" 
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => eliminarProd(p._id)}
+                                        _hover={{ bg: "red.100" }}
+                                    />
+                                </Td>
+                            </Tr>
+                        ))}
+                    </Tbody>
+                </Table>
+            </Box>
 
-            <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalOverlay />
-                <ModalContent>
+            {/* --- MODAL --- */}
+            <Modal isOpen={isOpen} onClose={onClose} size="md">
+                <ModalOverlay backdropFilter="blur(5px)" />
+                <ModalContent borderRadius="2xl">
                     <form onSubmit={crearProducto}>
-                        <ModalHeader>Agregar Nuevo Producto</ModalHeader>
+                        <ModalHeader borderBottomWidth="1px">Registrar Producto</ModalHeader>
                         <ModalCloseButton />
-                        <ModalBody>
+                        <ModalBody py={6}>
                             <VStack spacing={4}>
                                 <FormControl isRequired>
-                                    <FormLabel>Nombre</FormLabel>
-                                    <Input name="nombre" value={nuevoProd.nombre} onChange={handleChange} placeholder="Ej: Mouse Gamer" />
+                                    <FormLabel>Nombre del Producto</FormLabel>
+                                    <Input name="nombre" value={nuevoProd.nombre} onChange={handleChange} placeholder="Ej: Mouse Gamer" focusBorderColor="teal.400" />
                                 </FormControl>
                                 <FormControl isRequired>
                                     <FormLabel>Precio</FormLabel>
-                                    <Input name="precio" type="number" value={nuevoProd.precio} onChange={handleChange} placeholder="25.50" />
+                                    <InputGroup>
+                                        <InputLeftElement pointerEvents="none" color="gray.400" children="$" />
+                                        <Input name="precio" type="number" value={nuevoProd.precio} onChange={handleChange} placeholder="0.00" focusBorderColor="teal.400" />
+                                    </InputGroup>
                                 </FormControl>
                                 <FormControl isRequired>
                                     <FormLabel>Categoría</FormLabel>
-                                    <Input name="categoria" value={nuevoProd.categoria} onChange={handleChange} placeholder="Ej: Accesorios" />
+                                    <Input name="categoria" value={nuevoProd.categoria} onChange={handleChange} placeholder="Ej: Periféricos" focusBorderColor="teal.400" />
                                 </FormControl>
                                 <FormControl isRequired>
-                                    <FormLabel>URL Imagen</FormLabel>
-                                    <Input name="imagen" value={nuevoProd.imagen} onChange={handleChange} placeholder="https://..." />
+                                    <FormLabel>URL de Imagen</FormLabel>
+                                    <Input name="imagen" value={nuevoProd.imagen} onChange={handleChange} placeholder="https://link-de-imagen.com" focusBorderColor="teal.400" />
                                 </FormControl>
                                 <FormControl isRequired>
-                                    <FormLabel>Stock / Cantidad</FormLabel>
-                                    <Input name="cantidad" type="number" value={nuevoProd.cantidad} onChange={handleChange} placeholder="10" />
+                                    <FormLabel>Cantidad inicial</FormLabel>
+                                    <Input name="cantidad" type="number" value={nuevoProd.cantidad} onChange={handleChange} placeholder="1" focusBorderColor="teal.400" />
                                 </FormControl>
                             </VStack>
                         </ModalBody>
-                        <ModalFooter>
+                        <ModalFooter bg="gray.50" borderBottomRadius="2xl">
                             <Button variant="ghost" mr={3} onClick={onClose}>Cancelar</Button>
-                            <Button colorScheme="teal" type="submit">Guardar Producto</Button>
+                            <Button colorScheme="teal" type="submit" px={8} shadow="md">Guardar</Button>
                         </ModalFooter>
                     </form>
                 </ModalContent>

@@ -8,13 +8,14 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const checkUser = async () => {
+        const checkUser = () => {
             const token = localStorage.getItem('token');
-            if (token) {
-                // Aquí podrías hacer una petición al backend para validar el token
-                // Por ahora, simularemos que recuperamos el usuario del localStorage
-                const savedUser = JSON.parse(localStorage.getItem('user'));
-                setUser(savedUser);
+            const savedUser = localStorage.getItem('user');
+            
+            if (token && savedUser) {
+                setUser(JSON.parse(savedUser));
+                // Configurar el token globalmente en Axios al cargar la app
+                clienteAxios.defaults.headers.common['x-auth-token'] = token;
             }
             setLoading(false);
         };
@@ -23,20 +24,28 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const res = await clienteAxios.post('/auth/login', { email, password });
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-        setUser(res.data.user);
+        
+        const { token, user } = res.data;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        // Configurar el token globalmente para futuras peticiones
+        clienteAxios.defaults.headers.common['x-auth-token'] = token;
+        
+        setUser(user);
     };
 
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        delete clienteAxios.defaults.headers.common['x-auth-token'];
         setUser(null);
     };
 
     return (
         <AuthContext.Provider value={{ user, login, logout, loading }}>
-            {children}
+            {!loading && children}
         </AuthContext.Provider>
     );
 };
