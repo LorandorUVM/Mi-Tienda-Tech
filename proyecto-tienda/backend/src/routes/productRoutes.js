@@ -13,13 +13,15 @@ const isAdmin = (req, res, next) => {
 };
 
 // --- RUTAS PÚBLICAS ---
-// Obtener productos (Aquí el controlador debe aplicar el filtro de existencia > 0)
+// Obtener productos (El controlador aplica el filtro de existencia > 0 y paginación)
 router.get('/', productController.obtenerProductos);
 
 // --- RUTAS PROTEGIDAS (SOLO ADMIN) ---
-// REQUISITO: Solo el admin crea y elimina
+// REQUISITO: Solo el admin crea, edita y elimina
 router.post('/', [auth, isAdmin], productController.crearProducto);
 router.delete('/:id', [auth, isAdmin], productController.eliminarProducto);
-router.put('/:id', authMiddleware, adminMiddleware, actualizarProducto);
+
+// CORRECCIÓN AQUÍ: Usamos 'auth', 'isAdmin' y llamamos al controller correctamente
+router.put('/:id', [auth, isAdmin], productController.actualizarProducto);
 
 module.exports = router;
